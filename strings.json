@@ -174,6 +174,9 @@
             "daily_yield_energy": {
                 "name": "Daily yield"
             },
+            "maximum_active_power": {
+                "name": "Max Power"
+            },
             "monthly_yield_energy": {
                 "name": "Monthly yield"
             },
@@ -908,6 +911,20 @@
                 "power_percentage": {
                     "name": "Power Percentage",
                     "description": "Maximum Percentage"
+                }
+            }
+        },
+        "set_maximum_active_power": {
+            "name": "Limit the power fed to the grid",
+            "description": "Sets Active Power Control to 'Power-limited grid connection' with the given wattage",
+            "fields": {
+                "device_id": {
+                    "name": "[%key:component::huawei_solar::services::reset_maximum_feed_grid_power::fields::device_id::name%]",
+                    "description": "[%key:component::huawei_solar::services::reset_maximum_feed_grid_power::fields::device_id::description%]"
+                },
+                "power": {
+                    "name": "Power",
+                    "description": "Maximum Wattage"
                 }
             }
         },

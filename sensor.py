@@ -180,6 +180,12 @@ INVERTER_SENSOR_DESCRIPTIONS: tuple[HuaweiSolarSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HuaweiSolarSensorEntityDescription(
+        key=rn.MAXIMUM_ACTIVE_POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HuaweiSolarSensorEntityDescription(
         key=rn.REACTIVE_POWER,
         native_unit_of_measurement=UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
         device_class=SensorDeviceClass.REACTIVE_POWER,
@@ -1852,6 +1858,7 @@ class HuaweiSolarActivePowerControlModeEntity(
         rn.ACTIVE_POWER_CONTROL_MODE,
         rn.MAXIMUM_FEED_GRID_POWER_WATT,
         rn.MAXIMUM_FEED_GRID_POWER_PERCENT,
+        rn.MAXIMUM_ACTIVE_POWER,
     ]
 
     def __init__(
@@ -1886,7 +1893,10 @@ class HuaweiSolarActivePowerControlModeEntity(
             self.coordinator.data
             and set(self.REGISTER_NAMES) <= self.coordinator.data.keys()
         ):
-            mode = self.coordinator.data[rn.ACTIVE_POWER_CONTROL_MODE].value
+            mode = self.coordinator.data[rn.ACTIVE_POWER_CONTROL_MODE].value            
+            maximum_active_power = self.coordinator.data[
+                rn.MAXIMUM_ACTIVE_POWER
+            ].value
             maximum_power_watt = self.coordinator.data[
                 rn.MAXIMUM_FEED_GRID_POWER_WATT
             ].value
@@ -1895,7 +1905,10 @@ class HuaweiSolarActivePowerControlModeEntity(
             ].value
 
             if mode == rv.ActivePowerControlMode.UNLIMITED:
-                value = "Unlimited"
+                if (maximum_active_power < 5000):
+                    value = f"Limited to {maximum_active_power}W"
+                else:
+                    value = "Unlimited"
             elif (
                 mode == rv.ActivePowerControlMode.POWER_LIMITED_GRID_CONNECTION_PERCENT
             ):
@@ -1915,6 +1928,7 @@ class HuaweiSolarActivePowerControlModeEntity(
                 "mode": str(mode),
                 "maximum_power_watt": maximum_power_watt,
                 "maximum_power_percent": maximum_power_percent,
+                "maximum_active_power": maximum_active_power,
             }
         else:
             self._attr_available = False

@@ -145,6 +145,19 @@ set_maximum_feed_grid_power_percent:
           max: 100
           unit_of_measurement: "%"
 
+set_maximum_active_power:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: huawei_solar
+    power:
+      required: true
+      default: 0
+      selector:
+        text:
+
 set_tou_periods:
   fields:
     device_id:

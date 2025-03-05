@@ -41,6 +41,7 @@ from .const import (
     SERVICE_SET_FIXED_CHARGE_PERIODS,
     SERVICE_SET_MAXIMUM_FEED_GRID_POWER,
     SERVICE_SET_MAXIMUM_FEED_GRID_POWER_PERCENT,
+    SERVICE_SET_MAXIMUM_ACTIVE_POWER,
     SERVICE_SET_TOU_PERIODS,
     SERVICE_SET_ZERO_POWER_GRID_CONNECTION,
     SERVICE_STOP_FORCIBLE_CHARGE,
@@ -61,6 +62,7 @@ ALL_SERVICES = [
     SERVICE_SET_FIXED_CHARGE_PERIODS,
     SERVICE_SET_MAXIMUM_FEED_GRID_POWER,
     SERVICE_SET_MAXIMUM_FEED_GRID_POWER_PERCENT,
+    SERVICE_SET_MAXIMUM_ACTIVE_POWER,
     SERVICE_SET_TOU_PERIODS,
     SERVICE_SET_ZERO_POWER_GRID_CONNECTION,
     SERVICE_STOP_FORCIBLE_CHARGE,
@@ -134,6 +136,12 @@ MAXIMUM_FEED_GRID_POWER_PERCENTAGE_SCHEMA = INVERTER_DEVICE_SCHEMA.extend(
         vol.Required(DATA_POWER_PERCENTAGE): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=100)
         ),
+    }
+)
+
+MAXIMUM_ACTIVE_POWER_SCHEMA = INVERTER_DEVICE_SCHEMA.extend(
+    {
+        vol.Required(DATA_POWER): cv.positive_int,
     }
 )
 
@@ -486,6 +494,16 @@ async def set_maximum_feed_grid_power(
 
     await uc.async_refresh()
 
+async def set_maximum_active_power(
+    hass: HomeAssistant, service_call: ServiceCall
+) -> None:
+    """Set Active Power Control to 'Power-limited grid connection' with the given wattage."""
+    bridge, uc = get_inverter_bridge(hass, service_call)
+    power = await _validate_power_value(service_call.data[DATA_POWER], bridge, rn.P_MAX)
+
+    await bridge.set(rn.MAXIMUM_ACTIVE_POWER, power)
+
+    await uc.async_refresh()
 
 async def set_maximum_feed_grid_power_percentage(
     hass: HomeAssistant, service_call: ServiceCall
@@ -681,6 +699,13 @@ async def async_setup_services(  # noqa: C901
         SERVICE_SET_MAXIMUM_FEED_GRID_POWER_PERCENT,
         partial(set_maximum_feed_grid_power_percentage, hass),
         schema=MAXIMUM_FEED_GRID_POWER_PERCENTAGE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_MAXIMUM_ACTIVE_POWER,
+        partial(set_maximum_active_power, hass),
+        schema=MAXIMUM_ACTIVE_POWER_SCHEMA,
     )
 
     hsucs: list[HuaweiSolarUpdateCoordinators] = hass.data[DOMAIN][entry.entry_id][
