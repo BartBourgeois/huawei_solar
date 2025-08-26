@@ -7,6 +7,7 @@
 
 This integration exposes the information and functions made available by Huawei Solar installations over Modbus to Home Assistant.
 
+
 ## Table of Contents
 
 - [Screenshots](#screenshots)
